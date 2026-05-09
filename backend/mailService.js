@@ -1,9 +1,10 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
+require("dotenv").config();
 // ─── Configure Nodemailer Transporter ─────────────────────────────────────────
 // Using Gmail SMTP with explicit port to avoid IPv6 issues on Render
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  host: "smtp.gmail.com",
   port: 587,
   secure: false, // Use TLS (not SSL) for better compatibility
   auth: {
@@ -15,7 +16,9 @@ const transporter = nodemailer.createTransport({
 // ─── Send OTP Email ──────────────────────────────────────────────────────────
 const sendOTPEmail = async (email, otp) => {
   if (!process.env.MAIL_USER || !process.env.MAIL_PASSWORD) {
-    throw new Error('Mail configuration is missing. Set MAIL_USER and MAIL_PASSWORD in backend env variables.');
+    throw new Error(
+      "Mail configuration is missing. Set MAIL_USER and MAIL_PASSWORD in backend env variables.",
+    );
   }
   try {
     // Email HTML template
@@ -70,14 +73,16 @@ const sendOTPEmail = async (email, otp) => {
     const mailOptions = {
       from: process.env.MAIL_FROM || process.env.MAIL_USER,
       to: email,
-      subject: '🔐 Your Lost & Found OTP Verification Code',
+      subject: "🔐 Your Lost & Found OTP Verification Code",
       html: htmlContent,
       text: `Your OTP for Lost & Found is: ${otp}\n\nThis OTP is valid for 10 minutes.\nDo not share this code with anyone.`,
     };
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ OTP email sent to ${email} - Message ID: ${info.messageId}`);
+    console.log(
+      `✅ OTP email sent to ${email} - Message ID: ${info.messageId}`,
+    );
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error(`❌ Error sending OTP email to ${email}:`, error.message);
@@ -124,13 +129,15 @@ const sendWelcomeEmail = async (email, userName) => {
     const mailOptions = {
       from: process.env.MAIL_FROM || process.env.MAIL_USER,
       to: email,
-      subject: '👋 Welcome to Lost & Found',
+      subject: "👋 Welcome to Lost & Found",
       html: htmlContent,
       text: `Welcome to Lost & Found, ${userName}! Your account has been verified successfully.`,
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Welcome email sent to ${email} - Message ID: ${info.messageId}`);
+    console.log(
+      `✅ Welcome email sent to ${email} - Message ID: ${info.messageId}`,
+    );
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error(`❌ Error sending welcome email to ${email}:`, error.message);
