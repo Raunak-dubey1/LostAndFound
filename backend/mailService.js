@@ -1,9 +1,11 @@
 const nodemailer = require('nodemailer');
 
 // ─── Configure Nodemailer Transporter ─────────────────────────────────────────
-// Using Gmail SMTP (or configure with your email provider)
+// Using Gmail SMTP with explicit port to avoid IPv6 issues on Render
 const transporter = nodemailer.createTransport({
-  service: process.env.MAIL_SERVICE || 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // Use TLS (not SSL) for better compatibility
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASSWORD,
