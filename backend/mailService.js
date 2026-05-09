@@ -2,11 +2,12 @@ const nodemailer = require("nodemailer");
 
 require("dotenv").config();
 // ─── Configure Nodemailer Transporter ─────────────────────────────────────────
-// Using Gmail SMTP with explicit port to avoid IPv6 issues on Render
+// Using Gmail SMTP with explicit port and IPv4 to avoid IPv6 connectivity issues on Render
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false, // Use TLS (not SSL) for better compatibility
+  family: 4,
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASSWORD,
