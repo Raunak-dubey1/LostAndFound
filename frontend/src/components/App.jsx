@@ -6,8 +6,7 @@ import ClaimItem from "./ClaimItem";
 import Login from "./Login";
 import ClaimChat from "./ClaimChat";
 
-axios.defaults.baseURL =
-  process.env.REACT_APP_API_BASE_URL;
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
 function App() {
   const [currentView, setCurrentView] = useState("dashboard");
