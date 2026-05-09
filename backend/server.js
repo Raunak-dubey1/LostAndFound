@@ -12,6 +12,9 @@ const chatRoutes = require("./chatRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ─── Trust proxy headers (needed on Render / other reverse proxies)
+app.set('trust proxy', 1);
+
 // ─── Connect to MongoDB ───────────────────────────────────────────────────────
 connectDB();
 

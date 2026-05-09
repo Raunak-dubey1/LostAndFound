@@ -22,13 +22,16 @@ const generateOTP = () => {
 router.post("/send-otp", async (req, res) => {
   try {
     const { email, name } = req.body;
-    console.log("POST /api/auth/send-otp request received", {
-      email,
-      name,
+    console.log("-----------------------------------------");
+    console.log("📨 OTP SEND REQUEST RECEIVED");
+    console.log(`📧 Target Email: ${email}`);
+    console.log(`👤 Name: ${name}`);
+    console.log("⚙️  Mail Config:", {
       mailUserConfigured: !!process.env.MAIL_USER,
       mailPasswordConfigured: !!process.env.MAIL_PASSWORD,
       mailService: process.env.MAIL_SERVICE || "gmail",
     });
+    console.log("-----------------------------------------");
 
     if (!email) {
       return res
@@ -58,10 +61,12 @@ router.post("/send-otp", async (req, res) => {
     // Generate OTP
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
+    console.log(`🔢 Generated OTP: [REDACTED] for ${email} (Expiry: ${otpExpiry.toISOString()})`);
 
     // Find or create user
     let user = await User.findOne({ email });
     if (!user) {
+      console.log(`🆕 Creating NEW user profile for ${email}`);
       user = await User.create({
         email,
         name: name.trim(),
@@ -70,16 +75,19 @@ router.post("/send-otp", async (req, res) => {
         isVerified: false,
       });
     } else {
+      console.log(`🔄 Updating EXISTING user profile for ${email}`);
       // Update existing user with new OTP and name
       user.otp = otp;
       user.otpExpiry = otpExpiry;
       user.name = name.trim();
       await user.save();
     }
+    console.log(`✅ User database record prepared: ${user._id}`);
 
     // Send OTP via email
+    console.log(`📧 Triggering OTP email send to ${email}...`);
     await sendOTPEmail(email, otp);
-    console.log("OTP sent successfully", { email, userId: user._id });
+    console.log("✨ OTP email dispatched successfully");
 
     res.json({
       success: true,
@@ -120,37 +128,50 @@ router.post("/send-otp", async (req, res) => {
 router.post("/verify-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
+    console.log("-----------------------------------------");
+    console.log("🛡️  OTP VERIFICATION REQUEST");
+    console.log(`📧 Email: ${email}`);
+    console.log("-----------------------------------------");
 
     if (!email || !otp) {
+      console.log("⚠️  Missing email or OTP in request body");
       return res
         .status(400)
         .json({ success: false, message: "Email and OTP are required" });
     }
 
     // Find user
+    console.log(`🔍 Searching for user with email: ${email}`);
     const user = await User.findOne({ email }).select("+otp +otpExpiry");
     if (!user) {
+      console.log(`❌ Verification failed: User ${email} not found in database`);
       return res
         .status(401)
         .json({ success: false, message: "User not found" });
     }
 
     // Verify OTP
+    console.log(`🧪 Testing OTP match for user ${user._id}`);
     if (!user.verifyOTP(otp)) {
+      console.log(`❌ Verification failed: Invalid or expired OTP for ${email}`);
       return res
         .status(401)
         .json({ success: false, message: "Invalid or expired OTP" });
     }
+
+    console.log(`✅ OTP verified successfully for ${email}`);
 
     // Clear OTP fields
     user.otp = undefined;
     user.otpExpiry = undefined;
     user.isVerified = true;
     await user.save();
+    console.log(`💾 User record updated: isVerified=true, OTP cleared for ${email}`);
 
     // Send welcome email (non-blocking)
+    console.log(`👋 Queuing welcome email for ${email}...`);
     sendWelcomeEmail(user.email, user.name || "User").catch((err) => {
-      console.error("Welcome email send failed:", err.message);
+      console.error(`❌ Welcome email failed for ${email}:`, err.message);
     });
 
     res.json({

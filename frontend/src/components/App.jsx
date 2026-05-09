@@ -7,8 +7,7 @@ import Login from "./Login";
 import ClaimChat from "./ClaimChat";
 
 axios.defaults.baseURL =
-  process.env.REACT_APP_API_BASE_URL ||
-  "https://lostandfound-364x.onrender.com";
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
 function App() {
   const [currentView, setCurrentView] = useState("dashboard");
@@ -22,6 +21,8 @@ function App() {
     // ✅ On app load: restore user session AND set JWT token in axios headers
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
+
+    console.log("React API URL: ", process.env.REACT_APP_API_BASE_URL);
 
     if (storedUser && storedToken) {
       try {

@@ -47,12 +47,20 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 // 🔐 Method to verify OTP
 userSchema.methods.verifyOTP = function (enteredOTP) {
   if (!this.otp || !this.otpExpiry) {
+    console.log(`⚠️  OTP verification failed for ${this.email}: No OTP or expiry stored`);
     return false;
   }
   if (this.otpExpiry < new Date()) {
+    console.log(`⚠️  OTP verification failed for ${this.email}: OTP expired at ${this.otpExpiry.toISOString()}`);
     return false;
   }
-  return this.otp === enteredOTP;
+  const isMatch = this.otp === enteredOTP;
+  if (!isMatch) {
+    console.log(`❌ OTP verification failed for ${this.email}: Incorrect OTP entered`);
+  } else {
+    console.log(`✅ OTP verification success for ${this.email}`);
+  }
+  return isMatch;
 };
 
 module.exports = mongoose.model('User', userSchema);

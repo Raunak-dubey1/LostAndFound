@@ -1,21 +1,25 @@
 const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first"); // ← MUST be before nodemailer
+dns.setDefaultResultOrder("ipv4first");
+require("dotenv").config();
 
 const nodemailer = require("nodemailer");
 
 // ─── Configure Nodemailer Transporter ─────────────────────────────────────────
+const mailHost = process.env.MAIL_HOST || "smtp.gmail.com";
+const mailPort = Number(process.env.MAIL_PORT || 465);
+const mailSecure = mailPort === 465;
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // SSL port — more reliable on Render than TLS on 587
-  family: 4, // force IPv4 — prevents ENETUNREACH on Render
+  host: mailHost,
+  port: mailPort,
+  secure: mailSecure,
+  family: 4,
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASSWORD,
   },
 });
 
-// Verify transporter config on startup — logs auth errors early
 transporter.verify((error, success) => {
   if (error) {
     console.error("❌ Mail transporter verification failed:", error.message);
@@ -25,6 +29,9 @@ transporter.verify((error, success) => {
 });
 
 console.log("Nodemailer transporter created", {
+  mailHost,
+  mailPort,
+  mailSecure,
   mailUserConfigured: !!process.env.MAIL_USER,
   mailPasswordConfigured: !!process.env.MAIL_PASSWORD,
 });
@@ -32,10 +39,13 @@ console.log("Nodemailer transporter created", {
 // ─── Send OTP Email ──────────────────────────────────────────────────────────
 const sendOTPEmail = async (email, otp) => {
   if (!process.env.MAIL_USER || !process.env.MAIL_PASSWORD) {
+    console.error("❌ CRITICAL: Mail configuration missing! Cannot send OTP.");
     throw new Error(
-      "Mail configuration is missing. Set MAIL_USER and MAIL_PASSWORD in backend env variables.",
+      "Mail configuration is missing. Set MAIL_USER and MAIL_PASSWORD in environment variables.",
     );
   }
+
+  console.log(`📧 Preparing OTP email for: ${email}`);
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -99,9 +109,10 @@ const sendOTPEmail = async (email, otp) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(
-      `✅ OTP email sent to ${email} - Message ID: ${info.messageId}`,
-    );
+    console.log(`✅ SUCCESS: OTP email sent to ${email}`);
+    console.log(`📎 Message Details:`);
+    console.log(`   - ID: ${info.messageId}`);
+    console.log(`   - Response: ${info.response}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error(`❌ Error sending OTP email to ${email}:`, error.message);
@@ -154,13 +165,14 @@ const sendWelcomeEmail = async (email, userName) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(
-      `✅ Welcome email sent to ${email} - Message ID: ${info.messageId}`,
-    );
+    console.log(`✅ SUCCESS: Welcome email sent to ${email}`);
+    console.log(`📎 Message Details:`);
+    console.log(`   - ID: ${info.messageId}`);
+    console.log(`   - Response: ${info.response}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error(`❌ Error sending welcome email to ${email}:`, error.message);
-    return { success: false, error: error.message }; // non-critical, don't throw
+    return { success: false, error: error.message };
   }
 };
 
