@@ -13,6 +13,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+console.log("Nodemailer transporter created", {
+  mailUserConfigured: !!process.env.MAIL_USER,
+  mailPasswordConfigured: !!process.env.MAIL_PASSWORD,
+  mailService: process.env.MAIL_SERVICE || "gmail",
+});
+
 // ─── Send OTP Email ──────────────────────────────────────────────────────────
 const sendOTPEmail = async (email, otp) => {
   if (!process.env.MAIL_USER || !process.env.MAIL_PASSWORD) {
@@ -77,6 +83,13 @@ const sendOTPEmail = async (email, otp) => {
       html: htmlContent,
       text: `Your OTP for Lost & Found is: ${otp}\n\nThis OTP is valid for 10 minutes.\nDo not share this code with anyone.`,
     };
+
+    console.log("Sending OTP email with transporter", {
+      to: email,
+      from: mailOptions.from,
+      mailUserConfigured: !!process.env.MAIL_USER,
+      mailPasswordConfigured: !!process.env.MAIL_PASSWORD,
+    });
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
