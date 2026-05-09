@@ -6,6 +6,8 @@ import ClaimItem from "./ClaimItem";
 import Login from "./Login";
 import ClaimChat from "./ClaimChat";
 
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || "https://lostandfound-364x.onrender.com";
+
 function App() {
   const [currentView, setCurrentView] = useState("dashboard");
   const [activeChatClaimId, setActiveChatClaimId] = useState(null);
@@ -15,11 +17,6 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Set the deployed backend as the axios base URL for all requests.
-    axios.defaults.baseURL =
-      process.env.REACT_APP_API_BASE_URL ||
-      "https://lostandfound-364x.onrender.com";
-
     // ✅ On app load: restore user session AND set JWT token in axios headers
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");

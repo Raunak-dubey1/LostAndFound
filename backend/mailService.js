@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
 
 // ─── Send OTP Email ──────────────────────────────────────────────────────────
 const sendOTPEmail = async (email, otp) => {
+  if (!process.env.MAIL_USER || !process.env.MAIL_PASSWORD) {
+    throw new Error('Mail configuration is missing. Set MAIL_USER and MAIL_PASSWORD in backend env variables.');
+  }
   try {
     // Email HTML template
     const htmlContent = `
